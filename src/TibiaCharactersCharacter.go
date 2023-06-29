@@ -127,7 +127,6 @@ var (
 	summonRegex              = regexp.MustCompile(`(an? .+) of ([^<]+)`)
 	accountBadgesRegex       = regexp.MustCompile(`\(this\), &#39;(.*)&#39;, &#39;(.*)&#39;,.*\).*src="(.*)" alt=.*`)
 	accountAchievementsRegex = regexp.MustCompile(`<td class="[a-zA-Z0-9_.-]+">(.*)<\/td><td>(.*)?<?.*<\/td>`)
-	titleRegex               = regexp.MustCompile(`(.*) \(([0-9]+).*`)
 	characterInfoRegex       = regexp.MustCompile(`<td.*<nobr>[0-9]+\..(.*)<\/nobr><\/td><td.*><nobr>(.*)<\/nobr><\/td><td style="width: 70%">(.*)<\/td><td.*`)
 )
 
@@ -200,9 +199,24 @@ func TibiaCharactersCharacterImpl(BoxContentHTML string) (*CharacterResponse, er
 				case "Sex:":
 					CharacterInfoData.Sex = RowData
 				case "Title:":
-					subma1t := titleRegex.FindAllStringSubmatch(RowData, -1)
-					CharacterInfoData.Title = subma1t[0][1]
-					CharacterInfoData.UnlockedTitles = TibiaDataStringToInteger(subma1t[0][2])
+					leftParenIdx := strings.Index(RowData, "(")
+					if leftParenIdx == -1 {
+						return
+					}
+
+					title := RowData[:leftParenIdx-1]
+
+					spaceIdx := strings.Index(RowData[leftParenIdx:], " ")
+					if spaceIdx == -1 {
+						return
+					}
+
+					unlockedTitles := TibiaDataStringToInteger(
+						RowData[leftParenIdx+1 : leftParenIdx+spaceIdx],
+					)
+
+					CharacterInfoData.Title = title
+					CharacterInfoData.UnlockedTitles = unlockedTitles
 				case "Vocation:":
 					CharacterInfoData.Vocation = RowData
 				case "Level:":
