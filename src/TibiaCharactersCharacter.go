@@ -123,8 +123,7 @@ type CharacterResponse struct {
 const Br = 0x202
 
 var (
-	accountBadgesRegex = regexp.MustCompile(`\(this\), &#39;(.*)&#39;, &#39;(.*)&#39;,.*\).*src="(.*)" alt=.*`)
-	titleRegex         = regexp.MustCompile(`(.*) \(([0-9]+).*`)
+	titleRegex = regexp.MustCompile(`(.*) \(([0-9]+).*`)
 )
 
 // TibiaCharactersCharacter func
