@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"reflect"
-	"regexp"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -122,10 +121,6 @@ type CharacterResponse struct {
 // best to just simply use the Br constant value.
 const Br = 0x202
 
-var (
-	titleRegex = regexp.MustCompile(`(.*) \(([0-9]+).*`)
-)
-
 // TibiaCharactersCharacter func
 func TibiaCharactersCharacterImpl(BoxContentHTML string) (*CharacterResponse, error) {
 	var (
@@ -195,9 +190,24 @@ func TibiaCharactersCharacterImpl(BoxContentHTML string) (*CharacterResponse, er
 				case "Sex:":
 					CharacterInfoData.Sex = RowData
 				case "Title:":
-					subma1t := titleRegex.FindAllStringSubmatch(RowData, -1)
-					CharacterInfoData.Title = subma1t[0][1]
-					CharacterInfoData.UnlockedTitles = TibiaDataStringToInteger(subma1t[0][2])
+					leftParenIdx := strings.Index(RowData, "(")
+					if leftParenIdx == -1 {
+						return
+					}
+
+					title := RowData[:leftParenIdx-1]
+
+					spaceIdx := strings.Index(RowData[leftParenIdx:], " ")
+					if spaceIdx == -1 {
+						return
+					}
+
+					unlockedTitles := TibiaDataStringToInteger(
+						RowData[leftParenIdx+1 : leftParenIdx+spaceIdx],
+					)
+
+					CharacterInfoData.Title = title
+					CharacterInfoData.UnlockedTitles = unlockedTitles
 				case "Vocation:":
 					CharacterInfoData.Vocation = RowData
 				case "Level:":
